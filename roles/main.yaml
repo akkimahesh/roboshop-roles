@@ -1,0 +1,5 @@
+- name: {{ role_name }} 
+  hosts: {{ target_hosts }}
+  become: yes
+  roles:
+    - {{ role_name }} 
