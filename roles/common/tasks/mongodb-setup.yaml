@@ -1,0 +1,38 @@
+  - name: Copy mongodb repo
+    ansible.builtin.copy:
+      src: mongodb.repo
+      dest: /etc/yum.repos.d/mongodb.repo
+
+  - name: Install mongodb client
+    ansible.builtin.package:
+      name: mongodb-org-shell
+      state: present
+
+  - name: get the categories count
+    ansible.builtin.command:  mongo --host mongodb.maheshakki.shop --quiet --eval 'db = db.getSiblingDB("catalogue"); db.products.count()'
+    register: product_count
+    when: "'{{role_name}}' == 'catalogue'"
+
+  # - name: print the count
+  #   ansible.builtin.debug:
+  #     msg: "product count: {{product_count}}"
+
+  - name: load catalogue data
+    ansible.builtin.command: mongo --host mongodb.maheshakki.shop < /app/schema/catalogue.js
+    when: product_count.stdout == "0" and "'{{role_name}}' == 'catalogue'"
+
+  - name: get the users count
+    ansible.builtin.command:  mongo --host mongodb.maheshakki.shop --quiet --eval 'db = db.getSiblingDB("users"); db.users.count()'
+    register: user_count
+    when: "'{{role_name}}' == 'user'"
+
+  - name: load {{role_name}} data
+    ansible.builtin.command: mongo --host mongodb.maheshakki.shop < /app/schema/user.js
+    when: user_count.stdout == "0" and "'{{role_name}}' == 'user'"
+
+
+  - name: start and enable catalogue
+    ansible.builtin.service:
+      name: catalogue
+      state: restarted
+      enabled: yes

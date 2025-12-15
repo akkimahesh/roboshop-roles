@@ -22,8 +22,3 @@
       src: /tmp/{{role_name}}.zip
       dest: /app
       remote_src: yes
-
-  - name: Install dependencies
-    ansible.builtin.command: npm install
-    args:
-      chdir: /app
