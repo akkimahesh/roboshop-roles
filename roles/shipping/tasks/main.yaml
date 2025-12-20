@@ -1,0 +1,32 @@
+- name: app setup
+  vars:
+    mysql_password: RoboShop@1
+  ansible.builtin.import_role:
+    name: common
+    tasks_from: app-setup
+
+- name: install maven
+  ansible.builtin.dnf:
+    name: maven
+    state: present
+
+- name: install dependencies
+  ansible.builtin.command: mvn clean package
+  args:
+    chdir: /app
+
+- name: rename jar file
+  ansible.builtin.command: mv target/shipping-1.0.jar {{role_name}}.jar
+  args:
+    chdir: /app
+
+- name: load {{role_name}} data to mongodb
+  ansible.builtin.import_role:
+    name: common
+    tasks_from: mongodb-setup
+
+- name: systemd setup
+  ansible.builtin.import_role:
+    name: common
+    tasks_from: systemd
+

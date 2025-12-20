@@ -30,6 +30,14 @@
     ansible.builtin.command: mongo --host mongodb.maheshakki.shop < /app/schema/user.js
     when: user_count.stdout == "0" and "'{{role_name}}' == 'user'"
 
+  - name: check cities schema exists or not
+    ansible.builtin.command:  mysql -h mysql.maheshakkki.shop -uroot -p{{mysql_password}} -sN -e "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'cities'"
+    register: cities_count
+    when: "'{{role_name}}' == 'shipping'"
+
+  - name: load {{role_name}} data
+    ansible.builtin.command: "mysql -h mysql.maheshakkki.shop -uroot -p{{mysql_password}}  < /app/schema/shipping.sql"
+    when: cities_count.stdout != "1" and "'{{role_name}}' == 'shipping'"
 
   - name: start and enable catalogue
     ansible.builtin.service:
